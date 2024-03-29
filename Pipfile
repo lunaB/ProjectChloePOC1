@@ -6,6 +6,11 @@ name = "pypi"
 [packages]
 fastapi = {extras = ["all"], version = "*"}
 python-dotenv = "*"
+espnet-model-zoo = "*"
+pyopenjtalk = "*"
+torch = "*"
+playsound = "==1.2.2"
+espnet = "*"
 
 [dev-packages]
 

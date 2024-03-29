@@ -1,10 +1,10 @@
 version: '3.7'
 networks:
-  myapp:
+  app:
 
 services:
   app:
-    container_name: "myapp"
+    container_name: "app"
     user: root
     build:
       context: ..
@@ -19,6 +19,6 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - myapp
+      - app
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
