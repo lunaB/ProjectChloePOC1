@@ -3,14 +3,23 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
+[[source]]
+url = "https://download.pytorch.org/whl/cpu"
+verify_ssl = false
+name = "pytorch"
+
 [packages]
 fastapi = {extras = ["all"], version = "*"}
 python-dotenv = "*"
 espnet-model-zoo = "*"
 pyopenjtalk = "*"
-torch = "*"
 playsound = "==1.2.2"
 espnet = "*"
+speechrecognition = "*"
+torch = {version="*", index="pytorch"}
+torchvision = {version="*", index="pytorch"}
+torchaudio = {version="*", index="pytorch"}
+soundfile = "*"
 
 [dev-packages]
 

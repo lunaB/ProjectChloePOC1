@@ -19,10 +19,11 @@ FROM mcr.microsoft.com/vscode/devcontainers/python:${VARIANT}
 # RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1
 
 
-COPY Pipfile Pipfile.lock ./
+COPY Pipfile ./
 
 RUN \
   pip install pipenv & \
+  echo $(python --version | awk '{print $2}') & \
   pipenv --python $(python --version | awk '{print $2}') & \
   pipenv shell & \
-  pipenv install --dev --system --deploy
+  pipenv install
