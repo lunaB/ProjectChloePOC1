@@ -1,1 +1,1 @@
-tts_inference
+from_pretrained

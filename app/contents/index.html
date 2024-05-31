@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>음성 녹음 및 전송</title>
+</head>
+<body>
+    <h1>API 테스트</h1>
+    <textarea id="chat_history" cols="30" rows="10"></textarea>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        let recorder;
+        let audioChunks = [];
+
+        let textarea = document.getElementById("chat_history");
+
+        function playChloeVoice() {
+            const audio = new Audio("http://localhost:9145/contents/chloe_voice.wav");
+            audio.load(); // 캐시된 오디오를 무시하고 새로 다운로드
+            audio.play().catch(error => console.error("오디오 재생 중 에러 발생:", error));
+        }
+
+        document.addEventListener("keydown", (event) => {
+            if (event.code === "Space" && !recorder) {
+                audioChunks = []; // Reset chunks
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        recorder = new MediaRecorder(stream, {
+                          audioBitsPerSecond : 32000,   // Audio 인코딩 비트 전송률
+                          mimeType : "audio/webm"
+                        });
+                        recorder.start();
+
+                        recorder.ondataavailable = (e) => {
+                            audioChunks.push(e.data);
+                        };
+
+                        recorder.onstop = () => {
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                            const audioUrl = URL.createObjectURL(audioBlob);
+
+                            // Upload file
+                            const formData = new FormData();
+                            formData.append("voice", audioBlob, "recording.wav");
+                            axios.post("http://localhost:9145/query", formData, {
+                                headers: {
+                                    "Content-Type": "multipart/form-data",
+                                },
+                            })
+                            .then(response => {
+                                console.log("파일 전송 완료: " + response.status)
+                                playChloeVoice()
+                                console.log(response.data)
+                                textarea.value += "[나영채]: " + response.data.input_text + '\n'
+                                textarea.value += "[김민지]: " + response.data.output_text + '\n'
+                            })
+                            .catch(error => alert("에러 발생: " + error));
+                        };
+                    });
+            }
+        });
+
+        document.addEventListener("keyup", (event) => {
+            if (event.code === "Space" && recorder) {
+                recorder.stop();
+                recorder = null;
+            }
+        });
+    </script>
+</body>
+</html>

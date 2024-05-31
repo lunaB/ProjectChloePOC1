@@ -1,19 +1,10 @@
-print(r'''
- ____       __          ___                                    __            __            _     
-/\  _`\    /\ \        /\_ \                                 /'__`\        /'__`\        /' \    
-\ \ \/\_\  \ \ \___    \//\ \      ___      __              /\ \/\ \      /\ \/\ \      /\_, \   
- \ \ \/_/_  \ \  _ `\    \ \ \    / __`\  /'__`\            \ \ \ \ \     \ \ \ \ \     \/_/\ \  
-  \ \ \L\ \  \ \ \ \ \    \_\ \_ /\ \L\ \/\  __/             \ \ \_\ \ __  \ \ \_\ \ __    \ \ \ 
-   \ \____/   \ \_\ \_\   /\____\\ \____/\ \____\             \ \____//\_\  \ \____//\_\    \ \_\
-    \/___/     \/_/\/_/   \/____/ \/___/  \/____/              \/___/ \/_/   \/___/ \/_/     \/_/                                                                                                                                
-''') # https://snskeyboard.com/asciitext/
-
 import speech_recognition as sr
 import soundfile
 import playsound
 from espnet2.bin.tts_inference import Text2Speech
 
-from langchain_openai import ChatOpenAI
+# from langchain_openai import ChatOpenAI
+from langchain_community.llms import Ollama
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
@@ -34,6 +25,8 @@ logging.disable(logging.WARNING)
 import chromadb
 from chromadb.utils import embedding_functions
 
+from translate import translate
+
 from dotenv import load_dotenv
 
 # load dotenv
@@ -50,8 +43,10 @@ print("[Info] Embedding model loaded")
 
 # database load
 db = chromadb.PersistentClient(path="chroma")
+
 collection_history = db.get_or_create_collection(name="history", embedding_function=ef) # all history (chat, etc)
 collection_inference = db.get_or_create_collection(name="inference", embedding_function=ef) # inference about user
+
 print("[Info] Database loaded")
 
 # tts = Text2Speech.from_pretrained("mio/tokiwa_midori")
@@ -60,14 +55,15 @@ tts = Text2Speech.from_pretrained("imdanboy/kss_jets")
 print('[Info] TTS model loaded')
 
 # veriable setting
-user_name = "나영채" # "ナ ヨンチェ"
-ai_name = "김민지" # みどり
+user_name = "나영채"
+ai_name = "김민지"
 
 # response chain
 response_template = '''
 Information about "{ai_name}":
 She is Korean.
-Bright personality, first-year student at Sejong University, loves sleeping, and has a lot of curiosity.
+She is a human.
+Bright personality, first-year student at Seoul University, loves sleeping, and has a lot of curiosity.
 Close friends with {user_name}.
 
 {user_name}'s information:
@@ -86,7 +82,9 @@ Conversation:
 {ai_name} :
 '''.strip()
 response_prompt_template = PromptTemplate.from_template(response_template)
-llm = ChatOpenAI(model="gpt-4")
+
+llm = Ollama(model="llama3")
+# llm = ChatOpenAI(model="gpt-4")
 output_parser = StrOutputParser()
 response_chain = (response_prompt_template | llm | output_parser).with_config({"run_name": "Generate Response"})
 
@@ -123,6 +121,7 @@ try:
             audio = r.listen(source)
             user_text = None
             try:
+                # user_text = r.recognize_whisper(audio, language="korean")
                 user_text = r.recognize_google(audio, language="ko-KR")
             except sr.UnknownValueError:
                 # 오디오에서 발화를 인식하지 못함.
@@ -220,6 +219,11 @@ try:
             add_log(log_form_text)
             add_history(response_timestemp, ai_name, response_text)
             print(log_form_text)
+            
+            # Translate
+            # translate_to_korean = translate(response_text, "Japanese", "Korean")
+            # translate_form_text = f"[{response_timestemp}] {ai_name}(번역) : {translate_to_korean}"
+            # print(translate_form_text)
 
             # Add AI chat history
             db_form_text = f"{ai_name} : {response_text}"
@@ -233,7 +237,7 @@ try:
 
             # Text to speech
             tts_output = tts(response_text)
-            soundfile.write("contents/tts.wav", tts_output['wav'].numpy(), tts.fs, 'PCM_32')
+            soundfile.write("contents/tts.wav", tts_output['wav'].numpy(), tts.fs, 'PCM_16')
             playsound.playsound("contents/tts.wav")
 
 except KeyboardInterrupt:
@@ -252,6 +256,26 @@ finally:
     add_log(f"[{end_timestemp}] End of conversation ==========\n\n")
 
     # Debug (reset database)
-    # print("[Debug] Reset database")
-    # db.delete_collection("history")
-    # db.delete_collection("inference")
+    print("[Debug] Reset database")
+    db.delete_collection("history")
+    db.delete_collection("inference")
+
+
+class Container:
+    def __init__(self):
+        self.data = []
+
+    
+
+if __name__ == "__main__":
+    print(r'''
+ ____       __          ___                                    __            __            _     
+/\  _`\    /\ \        /\_ \                                 /'__`\        /'__`\        /' \    
+\ \ \/\_\  \ \ \___    \//\ \      ___      __              /\ \/\ \      /\ \/\ \      /\_, \   
+ \ \ \/_/_  \ \  _ `\    \ \ \    / __`\  /'__`\            \ \ \ \ \     \ \ \ \ \     \/_/\ \  
+  \ \ \L\ \  \ \ \ \ \    \_\ \_ /\ \L\ \/\  __/             \ \ \_\ \ __  \ \ \_\ \ __    \ \ \ 
+   \ \____/   \ \_\ \_\   /\____\\ \____/\ \____\             \ \____//\_\  \ \____//\_\    \ \_\
+    \/___/     \/_/\/_/   \/____/ \/___/  \/____/              \/___/ \/_/   \/___/ \/_/     \/_/                                                                                                                                
+''') # https://snskeyboard.com/asciitext/
+    
+    

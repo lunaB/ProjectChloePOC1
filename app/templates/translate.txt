@@ -1,0 +1,4 @@
+translate {src} to {dest}.
+---
+{src}: {text}
+{dest}: 

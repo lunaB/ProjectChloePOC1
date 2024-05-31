@@ -1,0 +1,9 @@
+Script:
+{script}
+
+Enum: ['happy', 'sad', 'anger', 'fear', 'surprise', 'none']
+
+1. From the last utterance of the script, select the emotion {name} felt from the following Enum.
+2. If no definite emotion is felt, select 'none'.
+
+Selection: 

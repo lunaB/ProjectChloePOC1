@@ -9,19 +9,27 @@ verify_ssl = false
 name = "pytorch"
 
 [packages]
-fastapi = {extras = ["all"], version = "*"}
 python-dotenv = "*"
 espnet-model-zoo = "*"
 pyopenjtalk = "*"
 playsound = "==1.2.2"
 espnet = "*"
 speechrecognition = "*"
-torch = {version="*", index="pytorch"}
-torchvision = {version="*", index="pytorch"}
-torchaudio = {version="*", index="pytorch"}
+torch = { index="pytorch"}
+torchvision = { index="pytorch"}
+torchaudio = { index="pytorch"}
 soundfile = "*"
+pyaudio = "*"
+langchain = "*"
+langchain-openai = "*"
+chromadb = "*"
+typeguard = "==2.13.3"
+pyobjc = "*"
+scipy = "==1.10.0"
+openai-whisper = "*"
 
 [dev-packages]
+g2pk = "*"
 
 [requires]
 python_version = "3.10"
